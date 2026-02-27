@@ -21,6 +21,7 @@ import {
 import BusinessUnitDeepDivePage from './pages/BusinessUnitDeepDivePage'
 import GroupWideAnalyticsPage from './pages/GroupWideAnalyticsPage'
 import MetricsLibraryPage from './pages/MetricsLibraryPage'
+import TestingPage from './pages/TestingPage'
 
 const navigation = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/analytics/unit' },
@@ -28,7 +29,7 @@ const navigation = [
   { label: 'Comparisons', icon: SlidersHorizontal },
   { label: 'Business Units', icon: Building2 },
   { label: 'Metrics Library', icon: Library, to: '/metrics-library' },
-  { label: 'Testing', icon: FlaskConical },
+  { label: 'Testing', icon: FlaskConical, to: '/testing' },
   { label: 'Reports', icon: Gauge },
   { label: 'Settings', icon: Settings },
 ]
@@ -50,6 +51,7 @@ function App() {
     if (item.label === 'Dashboard') return location.pathname === '/analytics/unit' || location.pathname === '/'
     if (item.label === 'Analytics') return location.pathname === '/analytics/group'
     if (item.label === 'Metrics Library') return location.pathname.startsWith('/metrics-library')
+    if (item.label === 'Testing') return location.pathname.startsWith('/testing')
     return false
   }
 
@@ -249,6 +251,7 @@ function App() {
               <Route path="/analytics/unit" element={<BusinessUnitDeepDivePage />} />
               <Route path="/analytics/group" element={<GroupWideAnalyticsPage />} />
               <Route path="/metrics-library" element={<MetricsLibraryPage />} />
+              <Route path="/testing" element={<TestingPage />} />
               <Route path="*" element={<Navigate to="/analytics/unit" replace />} />
             </Routes>
           </main>
