@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f1f5f9;
+  --border-subtle: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --brand-primary: #1e40af;
+  --accent-teal: #14b8a6;
+  --depth-1: 0 1px 2px rgba(2, 6, 23, 0.1), 0 0 0 1px rgba(148, 163, 184, 0.08);
+  --depth-2: 0 8px 24px rgba(2, 6, 23, 0.18), 0 0 0 1px rgba(148, 163, 184, 0.12);
+}
+
+.dark {
+  --bg-app: #020617;
+  --bg-surface: #0f172a;
+  --bg-elevated: #111827;
+  --border-subtle: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --brand-primary: #1e40af;
+  --accent-teal: #14b8a6;
+  --depth-1: 0 1px 2px rgba(2, 6, 23, 0.25), 0 0 0 1px rgba(148, 163, 184, 0.12);
+  --depth-2: 0 8px 24px rgba(2, 6, 23, 0.22), 0 0 0 1px rgba(148, 163, 184, 0.16);
+}
+
+@layer base {
+  * {
+    @apply border-[color:var(--border-subtle)];
+  }
+
+  body {
+    @apply m-0 min-w-[320px] bg-[var(--bg-app)] text-[var(--text-primary)] antialiased;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    text-rendering: optimizeLegibility;
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+}
+
+@layer components {
+  .control-select {
+    @apply h-9 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 text-xs text-[var(--text-secondary)] outline-none transition focus:ring-2;
+    --tw-ring-color: rgba(20, 184, 166, 0.3);
+  }
+
+  .control-select:hover {
+    border-color: rgba(20, 184, 166, 0.5);
+  }
+
+  .control-select:focus {
+    border-color: var(--accent-teal);
+  }
+
+  .control-button {
+    @apply inline-flex h-9 w-40 items-center justify-between gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 text-xs text-[var(--text-secondary)] transition hover:text-[var(--text-primary)];
+  }
+
+  .control-button:hover {
+    border-color: rgba(20, 184, 166, 0.5);
+  }
+
+  .icon-button {
+    @apply relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition hover:text-[var(--text-primary)];
+  }
+
+  .icon-button:hover {
+    border-color: rgba(20, 184, 166, 0.5);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-14px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
