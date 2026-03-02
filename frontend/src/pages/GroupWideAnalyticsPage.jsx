@@ -174,7 +174,7 @@ function GroupWideAnalyticsPage({ selectedUnits = [], dateRange = 'Last 30 days'
               </tr>
             </thead>
             <tbody>
-              {unitNames.filter((unitName) => selectedUnits.length === 0 || selectedUnits.includes(unitName)).map((unitName, index) => (
+              {unitNames.filter((unitName) => selectedUnits.length === 0 || selectedUnits.includes(unitName)).map((unitName) => (
                 <tr key={unitName} className="border-t border-[var(--border-subtle)] text-[var(--text-secondary)]">
                   <td className={compactTables ? 'px-3 py-1.5 font-medium text-[var(--text-primary)]' : 'px-3 py-2 font-medium text-[var(--text-primary)]'}>{unitName}</td>
                   {selectedMetrics.map((metricId) => {

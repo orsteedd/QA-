@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ArrowUpRight, Filter } from 'lucide-react'
 
 const units = ['Education Consultation Services', 'No. 1 Malatang', 'Captura', 'Service Processing', 'IT']
@@ -48,21 +48,14 @@ function ComparisonsPage({ selectedUnits = [], metric, dateRange = 'Last 30 days
   const [rightUnit, setRightUnit] = useState(availableUnits[1] ?? availableUnits[0])
   const [selectedMetrics, setSelectedMetrics] = useState(() => (metric && metrics.includes(metric) ? [metric, ...metrics.filter((item) => item !== metric)].slice(0, 3) : metrics.slice(0, 3)))
 
-  useEffect(() => {
-    setLeftUnit((prev) => (availableUnits.includes(prev) ? prev : availableUnits[0]))
-    setRightUnit((prev) => {
-      if (availableUnits.includes(prev)) return prev
-      return availableUnits[1] ?? availableUnits[0]
-    })
-  }, [availableUnits])
+  const effectiveLeftUnit = availableUnits.includes(leftUnit) ? leftUnit : availableUnits[0]
+  const effectiveRightUnit = availableUnits.includes(rightUnit) ? rightUnit : (availableUnits[1] ?? availableUnits[0])
 
-  useEffect(() => {
-    if (!metric || !metrics.includes(metric)) return
-    setSelectedMetrics((prev) => {
-      const next = [metric, ...prev.filter((item) => item !== metric)]
-      return next.slice(0, 3)
-    })
-  }, [metric])
+  const effectiveMetrics = useMemo(() => {
+    if (!metric || !metrics.includes(metric)) return selectedMetrics
+    const prioritized = [metric, ...selectedMetrics.filter((item) => item !== metric)]
+    return prioritized.slice(0, 3)
+  }, [metric, selectedMetrics])
 
   const toggleMetric = (metric) => {
     setSelectedMetrics((prev) => {
@@ -75,18 +68,18 @@ function ComparisonsPage({ selectedUnits = [], metric, dateRange = 'Last 30 days
   }
 
   const comparisonRows = useMemo(() => {
-    return selectedMetrics.map((metric) => {
-      const left = metricValues[metric][leftUnit]
-      const right = metricValues[metric][rightUnit]
+    return effectiveMetrics.map((metricName) => {
+      const left = metricValues[metricName][effectiveLeftUnit]
+      const right = metricValues[metricName][effectiveRightUnit]
       const diff = Number((left - right).toFixed(1))
       return {
-        metric,
+        metric: metricName,
         left,
         right,
         diff,
       }
     })
-  }, [leftUnit, rightUnit, selectedMetrics])
+  }, [effectiveLeftUnit, effectiveMetrics, effectiveRightUnit])
 
   return (
     <div className="space-y-4">
@@ -98,7 +91,7 @@ function ComparisonsPage({ selectedUnits = [], metric, dateRange = 'Last 30 days
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <label className="space-y-1 text-xs text-[var(--text-muted)]">
             Left Unit
-            <select value={leftUnit} onChange={(event) => setLeftUnit(event.target.value)} className="control-select w-full">
+            <select value={effectiveLeftUnit} onChange={(event) => setLeftUnit(event.target.value)} className="control-select w-full">
               {availableUnits.map((unit) => (
                 <option key={unit}>{unit}</option>
               ))}
@@ -107,7 +100,7 @@ function ComparisonsPage({ selectedUnits = [], metric, dateRange = 'Last 30 days
 
           <label className="space-y-1 text-xs text-[var(--text-muted)]">
             Right Unit
-            <select value={rightUnit} onChange={(event) => setRightUnit(event.target.value)} className="control-select w-full">
+            <select value={effectiveRightUnit} onChange={(event) => setRightUnit(event.target.value)} className="control-select w-full">
               {availableUnits.map((unit) => (
                 <option key={unit}>{unit}</option>
               ))}
@@ -116,13 +109,13 @@ function ComparisonsPage({ selectedUnits = [], metric, dateRange = 'Last 30 days
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          {metrics.map((metric) => {
-            const selected = selectedMetrics.includes(metric)
+          {metrics.map((metricName) => {
+            const selected = effectiveMetrics.includes(metricName)
             return (
               <button
-                key={metric}
+                key={metricName}
                 type="button"
-                onClick={() => toggleMetric(metric)}
+                onClick={() => toggleMetric(metricName)}
                 className={[
                   'rounded-full px-3 py-1.5 text-xs transition',
                   selected
@@ -130,7 +123,7 @@ function ComparisonsPage({ selectedUnits = [], metric, dateRange = 'Last 30 days
                     : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)]',
                 ].join(' ')}
               >
-                {metric}
+                {metricName}
               </button>
             )
           })}
@@ -147,8 +140,8 @@ function ComparisonsPage({ selectedUnits = [], metric, dateRange = 'Last 30 days
             <thead className="bg-[var(--bg-elevated)] text-xs uppercase tracking-[0.08em] text-[var(--text-muted)]">
               <tr>
                 <th className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>Metric</th>
-                <th className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>{leftUnit}</th>
-                <th className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>{rightUnit}</th>
+                <th className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>{effectiveLeftUnit}</th>
+                <th className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>{effectiveRightUnit}</th>
                 <th className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>Delta</th>
               </tr>
             </thead>

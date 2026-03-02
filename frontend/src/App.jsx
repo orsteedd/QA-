@@ -1,5 +1,5 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
-import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Suspense, lazy, useMemo, useState } from 'react'
+import { Link, Navigate, Route, Routes, useLocation, useSearchParams } from 'react-router-dom'
 import {
   BarChart3,
   Bell,
@@ -41,6 +41,9 @@ const navigation = [
 const dateRanges = ['Last 7 days', 'Last 30 days', 'Last 90 days', 'Custom']
 const units = ['Education Consultation Services', 'No. 1 Malatang', 'Captura', 'Service Processing', 'IT']
 const topMetrics = ['Quality Index', 'Timeliness', 'Compliance Rate', 'Innovation Score', 'Customer Satisfaction']
+const defaultDateRange = 'Last 30 days'
+const defaultMetric = 'Quality Index'
+const defaultSelectedUnits = [units[0], units[2], units[4]]
 const SETTINGS_STORAGE_KEY = 'enz-group-qa-ui-settings'
 const defaultUiSettings = {
   emailAlerts: true,
@@ -52,27 +55,60 @@ const defaultUiSettings = {
 
 function App() {
   const location = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [dateRange, setDateRange] = useState('Last 30 days')
-  const [selectedUnits, setSelectedUnits] = useState([units[0], units[2], units[4]])
-  const [metric, setMetric] = useState('Quality Index')
-  const [unitMenuOpen, setUnitMenuOpen] = useState(false)
-  const [uiSettings, setUiSettings] = useState(defaultUiSettings)
 
-  useEffect(() => {
+  const initialDateRange = searchParams.get('range')
+  const initialMetric = searchParams.get('metric')
+  const initialUnits = searchParams.get('units')
+
+  const [dateRange, setDateRange] = useState(() => (initialDateRange && dateRanges.includes(initialDateRange) ? initialDateRange : defaultDateRange))
+  const [selectedUnits, setSelectedUnits] = useState(() => {
+    if (!initialUnits) return defaultSelectedUnits
+    const parsedUnits = initialUnits
+      .split('|')
+      .map((item) => item.trim())
+      .filter((item, index, self) => units.includes(item) && self.indexOf(item) === index)
+    return parsedUnits.length > 0 ? parsedUnits : defaultSelectedUnits
+  })
+  const [metric, setMetric] = useState(() => (initialMetric && topMetrics.includes(initialMetric) ? initialMetric : defaultMetric))
+  const [unitMenuOpen, setUnitMenuOpen] = useState(false)
+  const [uiSettings, setUiSettings] = useState(() => {
     try {
       const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY)
-      if (!raw) return
-      setUiSettings({ ...defaultUiSettings, ...JSON.parse(raw) })
+      if (!raw) return defaultUiSettings
+      return { ...defaultUiSettings, ...JSON.parse(raw) }
     } catch {
-      setUiSettings(defaultUiSettings)
+      return defaultUiSettings
     }
-  }, [])
+  })
 
   const saveUiSettings = (nextSettings) => {
     setUiSettings(nextSettings)
     window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(nextSettings))
+  }
+
+  const updateQueryParams = ({ nextDateRange = dateRange, nextMetric = metric, nextUnits = selectedUnits }) => {
+    const nextParams = new URLSearchParams(searchParams)
+
+    if (nextDateRange === defaultDateRange) nextParams.delete('range')
+    else nextParams.set('range', nextDateRange)
+
+    if (nextMetric === defaultMetric) nextParams.delete('metric')
+    else nextParams.set('metric', nextMetric)
+
+    const normalizedUnits = nextUnits
+      .filter((unit) => units.includes(unit))
+      .filter((unit, index, self) => self.indexOf(unit) === index)
+
+    if (normalizedUnits.length === defaultSelectedUnits.length && defaultSelectedUnits.every((unit, index) => unit === normalizedUnits[index])) {
+      nextParams.delete('units')
+    } else {
+      nextParams.set('units', normalizedUnits.join('|'))
+    }
+
+    setSearchParams(nextParams, { replace: true })
   }
 
   const isNavItemActive = (item) => {
@@ -98,7 +134,11 @@ function App() {
   }, [selectedUnits])
 
   const toggleUnit = (unit) => {
-    setSelectedUnits((prev) => (prev.includes(unit) ? prev.filter((item) => item !== unit) : [...prev, unit]))
+    const nextSelectedUnits = selectedUnits.includes(unit)
+      ? selectedUnits.filter((item) => item !== unit)
+      : [...selectedUnits, unit]
+    setSelectedUnits(nextSelectedUnits)
+    updateQueryParams({ nextUnits: nextSelectedUnits })
   }
 
   return (
@@ -182,7 +222,15 @@ function App() {
               </div>
 
               <div className="ml-auto flex items-center gap-2 md:gap-3">
-                <select className="control-select" value={dateRange} onChange={(event) => setDateRange(event.target.value)}>
+                <select
+                  className="control-select"
+                  value={dateRange}
+                  onChange={(event) => {
+                    const nextDateRange = event.target.value
+                    setDateRange(nextDateRange)
+                    updateQueryParams({ nextDateRange })
+                  }}
+                >
                   {dateRanges.map((range) => (
                     <option key={range} value={range}>{range}</option>
                   ))}
@@ -217,7 +265,15 @@ function App() {
                   )}
                 </div>
 
-                <select className="control-select hidden lg:block" value={metric} onChange={(event) => setMetric(event.target.value)}>
+                <select
+                  className="control-select hidden lg:block"
+                  value={metric}
+                  onChange={(event) => {
+                    const nextMetric = event.target.value
+                    setMetric(nextMetric)
+                    updateQueryParams({ nextMetric })
+                  }}
+                >
                   {topMetrics.map((item) => (
                     <option key={item} value={item}>{item}</option>
                   ))}
@@ -242,7 +298,15 @@ function App() {
                   placeholder="Search..."
                 />
               </div>
-              <select className="control-select !w-40" value={dateRange} onChange={(event) => setDateRange(event.target.value)}>
+              <select
+                className="control-select !w-40"
+                value={dateRange}
+                onChange={(event) => {
+                  const nextDateRange = event.target.value
+                  setDateRange(nextDateRange)
+                  updateQueryParams({ nextDateRange })
+                }}
+              >
                 {dateRanges.map((range) => (
                   <option key={range} value={range}>{range}</option>
                 ))}
