@@ -22,16 +22,20 @@ import BusinessUnitDeepDivePage from './pages/BusinessUnitDeepDivePage'
 import GroupWideAnalyticsPage from './pages/GroupWideAnalyticsPage'
 import MetricsLibraryPage from './pages/MetricsLibraryPage'
 import TestingPage from './pages/TestingPage'
+import ComparisonsPage from './pages/ComparisonsPage'
+import BusinessUnitsPage from './pages/BusinessUnitsPage'
+import ReportsPage from './pages/ReportsPage'
+import SettingsPage from './pages/SettingsPage'
 
 const navigation = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/analytics/unit' },
   { label: 'Analytics', icon: BarChart3, to: '/analytics/group' },
-  { label: 'Comparisons', icon: SlidersHorizontal },
-  { label: 'Business Units', icon: Building2 },
+  { label: 'Comparisons', icon: SlidersHorizontal, to: '/comparisons' },
+  { label: 'Business Units', icon: Building2, to: '/business-units' },
   { label: 'Metrics Library', icon: Library, to: '/metrics-library' },
   { label: 'Testing', icon: FlaskConical, to: '/testing' },
-  { label: 'Reports', icon: Gauge },
-  { label: 'Settings', icon: Settings },
+  { label: 'Reports', icon: Gauge, to: '/reports' },
+  { label: 'Settings', icon: Settings, to: '/settings' },
 ]
 
 const dateRanges = ['Last 7 days', 'Last 30 days', 'Last 90 days', 'Custom']
@@ -50,8 +54,12 @@ function App() {
   const isNavItemActive = (item) => {
     if (item.label === 'Dashboard') return location.pathname === '/analytics/unit' || location.pathname === '/'
     if (item.label === 'Analytics') return location.pathname === '/analytics/group'
+    if (item.label === 'Comparisons') return location.pathname.startsWith('/comparisons')
+    if (item.label === 'Business Units') return location.pathname.startsWith('/business-units')
     if (item.label === 'Metrics Library') return location.pathname.startsWith('/metrics-library')
     if (item.label === 'Testing') return location.pathname.startsWith('/testing')
+    if (item.label === 'Reports') return location.pathname.startsWith('/reports')
+    if (item.label === 'Settings') return location.pathname.startsWith('/settings')
     return false
   }
 
@@ -250,8 +258,12 @@ function App() {
               <Route path="/" element={<Navigate to="/analytics/unit" replace />} />
               <Route path="/analytics/unit" element={<BusinessUnitDeepDivePage />} />
               <Route path="/analytics/group" element={<GroupWideAnalyticsPage />} />
+              <Route path="/comparisons" element={<ComparisonsPage />} />
+              <Route path="/business-units" element={<BusinessUnitsPage />} />
               <Route path="/metrics-library" element={<MetricsLibraryPage />} />
               <Route path="/testing" element={<TestingPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="/analytics/unit" replace />} />
             </Routes>
           </main>
