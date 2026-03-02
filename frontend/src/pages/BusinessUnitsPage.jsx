@@ -9,7 +9,7 @@ const units = [
   { name: 'IT', lead: 'D. Lopez', status: 'Healthy', qaScore: 91, openIssues: 8 },
 ]
 
-function BusinessUnitsPage() {
+function BusinessUnitsPage({ selectedUnits = [], compactTables = false }) {
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
 
@@ -17,15 +17,17 @@ function BusinessUnitsPage() {
     return units.filter((unit) => {
       const matchesQuery = unit.name.toLowerCase().includes(query.toLowerCase()) || unit.lead.toLowerCase().includes(query.toLowerCase())
       const matchesStatus = statusFilter === 'All' || unit.status === statusFilter
-      return matchesQuery && matchesStatus
+      const matchesGlobalUnitScope = selectedUnits.length === 0 || selectedUnits.includes(unit.name)
+      return matchesQuery && matchesStatus && matchesGlobalUnitScope
     })
-  }, [query, statusFilter])
+  }, [query, selectedUnits, statusFilter])
 
   return (
     <div className="space-y-4">
       <section className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 shadow-[var(--depth-1)]">
         <p className="text-xs uppercase tracking-[0.12em] text-[var(--text-muted)]">Business Units</p>
         <h2 className="mt-1 text-2xl font-semibold text-[var(--text-primary)]">Unit Directory & Health</h2>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">Showing {selectedUnits.length > 0 ? `${selectedUnits.length} selected units` : 'all units'} from top-bar filter.</p>
 
         <div className="mt-4 grid gap-3 md:grid-cols-[1fr_220px]">
           <div className="flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2">
@@ -48,7 +50,7 @@ function BusinessUnitsPage() {
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map((unit) => (
-          <article key={unit.name} className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-[var(--depth-1)]">
+          <article key={unit.name} className={compactTables ? 'rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3 shadow-[var(--depth-1)]' : 'rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-[var(--depth-1)]'}>
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="text-sm font-semibold text-[var(--text-primary)]">{unit.name}</p>

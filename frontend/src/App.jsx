@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import {
   BarChart3,
@@ -41,6 +41,14 @@ const navigation = [
 const dateRanges = ['Last 7 days', 'Last 30 days', 'Last 90 days', 'Custom']
 const units = ['Education Consultation Services', 'No. 1 Malatang', 'Captura', 'Service Processing', 'IT']
 const topMetrics = ['Quality Index', 'Timeliness', 'Compliance Rate', 'Innovation Score', 'Customer Satisfaction']
+const SETTINGS_STORAGE_KEY = 'enz-group-qa-ui-settings'
+const defaultUiSettings = {
+  emailAlerts: true,
+  pushAlerts: false,
+  compactTables: false,
+  autoRefresh: true,
+  refreshInterval: '30s',
+}
 
 function App() {
   const location = useLocation()
@@ -50,6 +58,22 @@ function App() {
   const [selectedUnits, setSelectedUnits] = useState([units[0], units[2], units[4]])
   const [metric, setMetric] = useState('Quality Index')
   const [unitMenuOpen, setUnitMenuOpen] = useState(false)
+  const [uiSettings, setUiSettings] = useState(defaultUiSettings)
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY)
+      if (!raw) return
+      setUiSettings({ ...defaultUiSettings, ...JSON.parse(raw) })
+    } catch {
+      setUiSettings(defaultUiSettings)
+    }
+  }, [])
+
+  const saveUiSettings = (nextSettings) => {
+    setUiSettings(nextSettings)
+    window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(nextSettings))
+  }
 
   const isNavItemActive = (item) => {
     if (item.label === 'Dashboard') return location.pathname === '/analytics/unit' || location.pathname === '/'
@@ -256,14 +280,32 @@ function App() {
 
             <Routes>
               <Route path="/" element={<Navigate to="/analytics/unit" replace />} />
-              <Route path="/analytics/unit" element={<BusinessUnitDeepDivePage />} />
-              <Route path="/analytics/group" element={<GroupWideAnalyticsPage />} />
-              <Route path="/comparisons" element={<ComparisonsPage />} />
-              <Route path="/business-units" element={<BusinessUnitsPage />} />
+              <Route
+                path="/analytics/unit"
+                element={<BusinessUnitDeepDivePage selectedUnits={selectedUnits} metric={metric} dateRange={dateRange} compactTables={uiSettings.compactTables} />}
+              />
+              <Route
+                path="/analytics/group"
+                element={<GroupWideAnalyticsPage selectedUnits={selectedUnits} metric={metric} dateRange={dateRange} compactTables={uiSettings.compactTables} />}
+              />
+              <Route
+                path="/comparisons"
+                element={<ComparisonsPage selectedUnits={selectedUnits} metric={metric} dateRange={dateRange} compactTables={uiSettings.compactTables} />}
+              />
+              <Route
+                path="/business-units"
+                element={<BusinessUnitsPage selectedUnits={selectedUnits} compactTables={uiSettings.compactTables} />}
+              />
               <Route path="/metrics-library" element={<MetricsLibraryPage />} />
               <Route path="/testing" element={<TestingPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
+              <Route
+                path="/reports"
+                element={<ReportsPage dateRange={dateRange} compactTables={uiSettings.compactTables} autoRefresh={uiSettings.autoRefresh} refreshInterval={uiSettings.refreshInterval} />}
+              />
+              <Route
+                path="/settings"
+                element={<SettingsPage settings={uiSettings} onChange={setUiSettings} onSave={saveUiSettings} />}
+              />
               <Route path="*" element={<Navigate to="/analytics/unit" replace />} />
             </Routes>
           </main>

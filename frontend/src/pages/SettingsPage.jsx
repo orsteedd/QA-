@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Save, ShieldCheck } from 'lucide-react'
-
-const SETTINGS_STORAGE_KEY = 'enz-group-qa-ui-settings'
 
 const defaultSettings = {
   emailAlerts: true,
@@ -11,27 +9,21 @@ const defaultSettings = {
   refreshInterval: '30s',
 }
 
-function SettingsPage() {
-  const [settings, setSettings] = useState(defaultSettings)
+function SettingsPage({ settings = defaultSettings, onChange, onSave }) {
   const [saved, setSaved] = useState(false)
 
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY)
-      if (!raw) return
-      setSettings({ ...defaultSettings, ...JSON.parse(raw) })
-    } catch {
-      setSettings(defaultSettings)
-    }
-  }, [])
+  const applySettings = (updater) => {
+    const next = typeof updater === 'function' ? updater(settings) : updater
+    onChange?.(next)
+  }
 
   const toggle = (key) => {
-    setSettings((prev) => ({ ...prev, [key]: !prev[key] }))
+    applySettings((prev) => ({ ...prev, [key]: !prev[key] }))
     setSaved(false)
   }
 
   const handleSave = () => {
-    window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings))
+    onSave?.(settings)
     setSaved(true)
   }
 
@@ -75,7 +67,7 @@ function SettingsPage() {
             Refresh Interval
             <select
               value={settings.refreshInterval}
-              onChange={(event) => setSettings((prev) => ({ ...prev, refreshInterval: event.target.value }))}
+              onChange={(event) => applySettings((prev) => ({ ...prev, refreshInterval: event.target.value }))}
               className="control-select w-full"
             >
               <option value="15s">15s</option>

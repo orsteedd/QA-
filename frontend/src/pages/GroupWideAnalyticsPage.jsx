@@ -32,11 +32,11 @@ const groupSeries = [
 ]
 
 const unitLineConfig = [
-  { id: 'ecs', label: 'Education', color: '#14B8A6' },
-  { id: 'malatang', label: 'Malatang', color: '#1E40AF' },
-  { id: 'captura', label: 'Captura', color: '#38BDF8' },
-  { id: 'service', label: 'Service Proc.', color: '#A78BFA' },
-  { id: 'it', label: 'IT', color: '#22C55E' },
+  { id: 'ecs', label: 'Education', fullName: 'Education Consultation Services', color: '#14B8A6' },
+  { id: 'malatang', label: 'Malatang', fullName: 'No. 1 Malatang', color: '#1E40AF' },
+  { id: 'captura', label: 'Captura', fullName: 'Captura', color: '#38BDF8' },
+  { id: 'service', label: 'Service Proc.', fullName: 'Service Processing', color: '#A78BFA' },
+  { id: 'it', label: 'IT', fullName: 'IT', color: '#22C55E' },
 ]
 
 const latestScores = {
@@ -46,9 +46,14 @@ const latestScores = {
   innovation: [88, 82, 91, 79, 86],
 }
 
-function GroupWideAnalyticsPage() {
+function GroupWideAnalyticsPage({ selectedUnits = [], dateRange = 'Last 30 days', compactTables = false }) {
   const [selectedMetrics, setSelectedMetrics] = useState(['quality', 'sla'])
   const [drillPoint, setDrillPoint] = useState(null)
+
+  const activeUnitConfig = useMemo(() => {
+    if (selectedUnits.length === 0) return unitLineConfig
+    return unitLineConfig.filter((unit) => selectedUnits.includes(unit.fullName))
+  }, [selectedUnits])
 
   const toggleMetric = (metricId) => {
     setSelectedMetrics((prev) => {
@@ -84,7 +89,7 @@ function GroupWideAnalyticsPage() {
   }, [])
 
   const modalRows = drillPoint
-    ? unitLineConfig.map((unit) => [unit.label, `${drillPoint[unit.id]}%`])
+    ? activeUnitConfig.map((unit) => [unit.label, `${drillPoint[unit.id]}%`])
     : []
 
   return (
@@ -92,7 +97,7 @@ function GroupWideAnalyticsPage() {
       <section className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 shadow-[var(--depth-1)]">
         <p className="text-xs uppercase tracking-[0.12em] text-[var(--text-muted)]">Group-Wide Analytics</p>
         <h2 className="mt-1 text-2xl font-semibold text-[var(--text-primary)]">ENZ Group – Cross Unit Performance</h2>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">Comparative trends and metric health across all 5 business units.</p>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">Comparative trends and metric health for {selectedUnits.length > 0 ? `${selectedUnits.length} selected units` : 'all 5 business units'} ({dateRange}).</p>
       </section>
 
       <MetricSelector options={metricOptions} selected={selectedMetrics} onToggle={toggleMetric} />
@@ -122,7 +127,7 @@ function GroupWideAnalyticsPage() {
                   color: '#F8FAFC',
                 }}
               />
-              {unitLineConfig.map((unit) => (
+              {activeUnitConfig.map((unit) => (
                 <Line
                   key={unit.id}
                   type="monotone"
@@ -161,23 +166,23 @@ function GroupWideAnalyticsPage() {
           <table className="w-full min-w-[760px] border-collapse text-left text-sm">
             <thead className="bg-[var(--bg-elevated)] text-xs uppercase tracking-[0.08em] text-[var(--text-muted)]">
               <tr>
-                <th className="px-3 py-2">Business Unit</th>
+                <th className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>Business Unit</th>
                 {selectedMetrics.map((metricId) => {
                   const metric = metricOptions.find((item) => item.id === metricId)
-                  return <th key={metricId} className="px-3 py-2">{metric?.label}</th>
+                  return <th key={metricId} className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>{metric?.label}</th>
                 })}
               </tr>
             </thead>
             <tbody>
-              {unitNames.map((unitName, index) => (
+              {unitNames.filter((unitName) => selectedUnits.length === 0 || selectedUnits.includes(unitName)).map((unitName, index) => (
                 <tr key={unitName} className="border-t border-[var(--border-subtle)] text-[var(--text-secondary)]">
-                  <td className="px-3 py-2 font-medium text-[var(--text-primary)]">{unitName}</td>
+                  <td className={compactTables ? 'px-3 py-1.5 font-medium text-[var(--text-primary)]' : 'px-3 py-2 font-medium text-[var(--text-primary)]'}>{unitName}</td>
                   {selectedMetrics.map((metricId) => {
                     const metric = metricOptions.find((item) => item.id === metricId)
-                    const value = latestScores[metricId][index]
+                    const value = latestScores[metricId][unitNames.indexOf(unitName)]
                     const alpha = 0.14 + (value / 100) * 0.44
                     return (
-                      <td key={`${unitName}-${metricId}`} className="px-3 py-2">
+                      <td key={`${unitName}-${metricId}`} className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>
                         <div
                           className="rounded-md px-2 py-1 text-xs font-medium"
                           style={{

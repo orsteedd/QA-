@@ -35,9 +35,10 @@ function metricUnit(metricId) {
   return metricOptions.find((item) => item.id === metricId)?.unit ?? ''
 }
 
-function BusinessUnitDeepDivePage() {
+function BusinessUnitDeepDivePage({ selectedUnits = [], dateRange = 'Last 30 days', compactTables = false }) {
   const [selectedMetrics, setSelectedMetrics] = useState(['quality', 'sla', 'csat'])
   const [drillPoint, setDrillPoint] = useState(null)
+  const focusUnit = selectedUnits[0] ?? 'No. 1 Malatang'
 
   const toggleMetric = (metricId) => {
     setSelectedMetrics((prev) => {
@@ -86,8 +87,8 @@ function BusinessUnitDeepDivePage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.12em] text-[var(--text-muted)]">Business Unit Deep Dive</p>
-            <h2 className="mt-1 text-2xl font-semibold text-[var(--text-primary)]">No. 1 Malatang – Analytics</h2>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">Performance and quality behavior with metric-level trend breakdown.</p>
+            <h2 className="mt-1 text-2xl font-semibold text-[var(--text-primary)]">{focusUnit} – Analytics</h2>
+            <p className="mt-1 text-sm text-[var(--text-secondary)]">Performance and quality behavior with metric-level trend breakdown ({dateRange}).</p>
           </div>
           <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 text-xs text-[var(--text-secondary)]">
             Click a chart point to drill into raw data
@@ -163,24 +164,24 @@ function BusinessUnitDeepDivePage() {
           <table className="w-full min-w-[720px] border-collapse text-left text-sm">
             <thead className="bg-[var(--bg-elevated)] text-xs uppercase tracking-[0.08em] text-[var(--text-muted)]">
               <tr>
-                <th className="px-3 py-2">Day</th>
+                <th className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>Day</th>
                 {selectedMetrics.map((metricId) => {
                   const metric = metricOptions.find((item) => item.id === metricId)
-                  return <th key={metricId} className="px-3 py-2">{metric?.label}</th>
+                  return <th key={metricId} className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>{metric?.label}</th>
                 })}
               </tr>
             </thead>
             <tbody>
               {heatmapRows.map((row) => (
                 <tr key={row.date} className="border-t border-[var(--border-subtle)] text-[var(--text-secondary)]">
-                  <td className="px-3 py-2 font-medium text-[var(--text-primary)]">{row.date}</td>
+                  <td className={compactTables ? 'px-3 py-1.5 font-medium text-[var(--text-primary)]' : 'px-3 py-2 font-medium text-[var(--text-primary)]'}>{row.date}</td>
                   {selectedMetrics.map((metricId) => {
                     const metric = metricOptions.find((item) => item.id === metricId)
                     const value = row[metricId]
                     const normalized = Math.min(1, Number(value) / heatmapMax)
                     const alpha = 0.14 + normalized * 0.42
                     return (
-                      <td key={`${row.date}-${metricId}`} className="px-3 py-2">
+                      <td key={`${row.date}-${metricId}`} className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>
                         <div
                           className="rounded-md px-2 py-1 text-xs font-medium"
                           style={{
@@ -203,7 +204,7 @@ function BusinessUnitDeepDivePage() {
       <DrilldownModal
         open={Boolean(drillPoint)}
         title="Raw Data Drill-down"
-        subtitle={drillPoint ? `No. 1 Malatang • ${drillPoint.date}` : ''}
+        subtitle={drillPoint ? `${focusUnit} • ${drillPoint.date}` : ''}
         columns={['Metric', 'Value']}
         rows={modalRows}
         onClose={() => setDrillPoint(null)}

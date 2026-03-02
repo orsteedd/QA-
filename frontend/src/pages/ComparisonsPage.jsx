@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight, Filter } from 'lucide-react'
 
 const units = ['Education Consultation Services', 'No. 1 Malatang', 'Captura', 'Service Processing', 'IT']
@@ -42,10 +42,27 @@ const metricValues = {
   },
 }
 
-function ComparisonsPage() {
-  const [leftUnit, setLeftUnit] = useState('Education Consultation Services')
-  const [rightUnit, setRightUnit] = useState('No. 1 Malatang')
-  const [selectedMetrics, setSelectedMetrics] = useState(metrics.slice(0, 3))
+function ComparisonsPage({ selectedUnits = [], metric, dateRange = 'Last 30 days', compactTables = false }) {
+  const availableUnits = selectedUnits.length > 0 ? selectedUnits : units
+  const [leftUnit, setLeftUnit] = useState(availableUnits[0])
+  const [rightUnit, setRightUnit] = useState(availableUnits[1] ?? availableUnits[0])
+  const [selectedMetrics, setSelectedMetrics] = useState(() => (metric && metrics.includes(metric) ? [metric, ...metrics.filter((item) => item !== metric)].slice(0, 3) : metrics.slice(0, 3)))
+
+  useEffect(() => {
+    setLeftUnit((prev) => (availableUnits.includes(prev) ? prev : availableUnits[0]))
+    setRightUnit((prev) => {
+      if (availableUnits.includes(prev)) return prev
+      return availableUnits[1] ?? availableUnits[0]
+    })
+  }, [availableUnits])
+
+  useEffect(() => {
+    if (!metric || !metrics.includes(metric)) return
+    setSelectedMetrics((prev) => {
+      const next = [metric, ...prev.filter((item) => item !== metric)]
+      return next.slice(0, 3)
+    })
+  }, [metric])
 
   const toggleMetric = (metric) => {
     setSelectedMetrics((prev) => {
@@ -76,13 +93,13 @@ function ComparisonsPage() {
       <section className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 shadow-[var(--depth-1)]">
         <p className="text-xs uppercase tracking-[0.12em] text-[var(--text-muted)]">Comparisons</p>
         <h2 className="mt-1 text-2xl font-semibold text-[var(--text-primary)]">Cross-Unit Comparison</h2>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">Compare two business units on selected active metrics.</p>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">Compare two business units on selected active metrics ({dateRange}).</p>
 
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <label className="space-y-1 text-xs text-[var(--text-muted)]">
             Left Unit
             <select value={leftUnit} onChange={(event) => setLeftUnit(event.target.value)} className="control-select w-full">
-              {units.map((unit) => (
+              {availableUnits.map((unit) => (
                 <option key={unit}>{unit}</option>
               ))}
             </select>
@@ -91,7 +108,7 @@ function ComparisonsPage() {
           <label className="space-y-1 text-xs text-[var(--text-muted)]">
             Right Unit
             <select value={rightUnit} onChange={(event) => setRightUnit(event.target.value)} className="control-select w-full">
-              {units.map((unit) => (
+              {availableUnits.map((unit) => (
                 <option key={unit}>{unit}</option>
               ))}
             </select>
@@ -129,19 +146,19 @@ function ComparisonsPage() {
           <table className="w-full min-w-[640px] border-collapse text-left text-sm">
             <thead className="bg-[var(--bg-elevated)] text-xs uppercase tracking-[0.08em] text-[var(--text-muted)]">
               <tr>
-                <th className="px-3 py-2">Metric</th>
-                <th className="px-3 py-2">{leftUnit}</th>
-                <th className="px-3 py-2">{rightUnit}</th>
-                <th className="px-3 py-2">Delta</th>
+                <th className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>Metric</th>
+                <th className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>{leftUnit}</th>
+                <th className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>{rightUnit}</th>
+                <th className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>Delta</th>
               </tr>
             </thead>
             <tbody>
               {comparisonRows.map((row) => (
                 <tr key={row.metric} className="border-t border-[var(--border-subtle)] text-[var(--text-secondary)]">
-                  <td className="px-3 py-2 font-medium text-[var(--text-primary)]">{row.metric}</td>
-                  <td className="px-3 py-2">{row.left}%</td>
-                  <td className="px-3 py-2">{row.right}%</td>
-                  <td className="px-3 py-2">
+                  <td className={compactTables ? 'px-3 py-1.5 font-medium text-[var(--text-primary)]' : 'px-3 py-2 font-medium text-[var(--text-primary)]'}>{row.metric}</td>
+                  <td className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>{row.left}%</td>
+                  <td className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>{row.right}%</td>
+                  <td className={compactTables ? 'px-3 py-1.5' : 'px-3 py-2'}>
                     <span className={[
                       'inline-flex rounded-full px-2 py-1 text-xs font-medium',
                       row.diff >= 0 ? 'bg-emerald-500/15 text-emerald-300' : 'bg-red-500/15 text-red-300',
