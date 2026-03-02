@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import {
   BarChart3,
@@ -18,14 +18,14 @@ import {
   Sparkles,
   X,
 } from 'lucide-react'
-import BusinessUnitDeepDivePage from './pages/BusinessUnitDeepDivePage'
-import GroupWideAnalyticsPage from './pages/GroupWideAnalyticsPage'
-import MetricsLibraryPage from './pages/MetricsLibraryPage'
-import TestingPage from './pages/TestingPage'
-import ComparisonsPage from './pages/ComparisonsPage'
-import BusinessUnitsPage from './pages/BusinessUnitsPage'
-import ReportsPage from './pages/ReportsPage'
-import SettingsPage from './pages/SettingsPage'
+const BusinessUnitDeepDivePage = lazy(() => import('./pages/BusinessUnitDeepDivePage'))
+const GroupWideAnalyticsPage = lazy(() => import('./pages/GroupWideAnalyticsPage'))
+const MetricsLibraryPage = lazy(() => import('./pages/MetricsLibraryPage'))
+const TestingPage = lazy(() => import('./pages/TestingPage'))
+const ComparisonsPage = lazy(() => import('./pages/ComparisonsPage'))
+const BusinessUnitsPage = lazy(() => import('./pages/BusinessUnitsPage'))
+const ReportsPage = lazy(() => import('./pages/ReportsPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 
 const navigation = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/analytics/unit' },
@@ -278,36 +278,44 @@ function App() {
               </section>
             )}
 
-            <Routes>
-              <Route path="/" element={<Navigate to="/analytics/unit" replace />} />
-              <Route
-                path="/analytics/unit"
-                element={<BusinessUnitDeepDivePage selectedUnits={selectedUnits} metric={metric} dateRange={dateRange} compactTables={uiSettings.compactTables} />}
-              />
-              <Route
-                path="/analytics/group"
-                element={<GroupWideAnalyticsPage selectedUnits={selectedUnits} metric={metric} dateRange={dateRange} compactTables={uiSettings.compactTables} />}
-              />
-              <Route
-                path="/comparisons"
-                element={<ComparisonsPage selectedUnits={selectedUnits} metric={metric} dateRange={dateRange} compactTables={uiSettings.compactTables} />}
-              />
-              <Route
-                path="/business-units"
-                element={<BusinessUnitsPage selectedUnits={selectedUnits} compactTables={uiSettings.compactTables} />}
-              />
-              <Route path="/metrics-library" element={<MetricsLibraryPage />} />
-              <Route path="/testing" element={<TestingPage />} />
-              <Route
-                path="/reports"
-                element={<ReportsPage dateRange={dateRange} compactTables={uiSettings.compactTables} autoRefresh={uiSettings.autoRefresh} refreshInterval={uiSettings.refreshInterval} />}
-              />
-              <Route
-                path="/settings"
-                element={<SettingsPage settings={uiSettings} onChange={setUiSettings} onSave={saveUiSettings} />}
-              />
-              <Route path="*" element={<Navigate to="/analytics/unit" replace />} />
-            </Routes>
+            <Suspense
+              fallback={(
+                <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 text-sm text-[var(--text-secondary)] shadow-[var(--depth-1)]">
+                  Loading page...
+                </div>
+              )}
+            >
+              <Routes>
+                <Route path="/" element={<Navigate to="/analytics/unit" replace />} />
+                <Route
+                  path="/analytics/unit"
+                  element={<BusinessUnitDeepDivePage selectedUnits={selectedUnits} metric={metric} dateRange={dateRange} compactTables={uiSettings.compactTables} />}
+                />
+                <Route
+                  path="/analytics/group"
+                  element={<GroupWideAnalyticsPage selectedUnits={selectedUnits} metric={metric} dateRange={dateRange} compactTables={uiSettings.compactTables} />}
+                />
+                <Route
+                  path="/comparisons"
+                  element={<ComparisonsPage selectedUnits={selectedUnits} metric={metric} dateRange={dateRange} compactTables={uiSettings.compactTables} />}
+                />
+                <Route
+                  path="/business-units"
+                  element={<BusinessUnitsPage selectedUnits={selectedUnits} compactTables={uiSettings.compactTables} />}
+                />
+                <Route path="/metrics-library" element={<MetricsLibraryPage />} />
+                <Route path="/testing" element={<TestingPage />} />
+                <Route
+                  path="/reports"
+                  element={<ReportsPage dateRange={dateRange} compactTables={uiSettings.compactTables} autoRefresh={uiSettings.autoRefresh} refreshInterval={uiSettings.refreshInterval} />}
+                />
+                <Route
+                  path="/settings"
+                  element={<SettingsPage settings={uiSettings} onChange={setUiSettings} onSave={saveUiSettings} />}
+                />
+                <Route path="*" element={<Navigate to="/analytics/unit" replace />} />
+              </Routes>
+            </Suspense>
           </main>
         </div>
       </div>
